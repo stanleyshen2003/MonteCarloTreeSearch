@@ -4,15 +4,15 @@
 #include "../../mcts/include/state.h"
 
 
-class TicTacToe_state : public MCTS_state {
-    char board[3][3]{};
+class BattleSheep_state : public MCTS_state {
+    char board[12][12]{};
     bool player_won(char player) const;
     char calculate_winner() const;
     char turn, winner;
     void change_turn();
 public:
-    TicTacToe_state();
-    TicTacToe_state(const TicTacToe_state &other);
+    BattleSheep_state();
+    BattleSheep_state(const BattleSheep_state &other);
     char get_turn() const;
     char get_winner() const;
     bool is_terminal() const override;
@@ -24,10 +24,10 @@ public:
 };
 
 
-struct TicTacToe_move : public MCTS_move {
+struct BattleSheep_move : public MCTS_move {
     int x, y;
     char player;
-    TicTacToe_move(int x, int y, char p) : x(x), y(y), player(p) {}
+    BattleSheep_move(int x, int y, char p) : x(x), y(y), player(p) {}
     bool operator==(const MCTS_move& other) const override;
 };
 
