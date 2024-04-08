@@ -139,13 +139,15 @@ bool GameState::is_terminal() {
 
 bool GameState::is_winner(char turn) {
     double turn_score = 0, new_score = 0;
+    int temp_turn_score = 0, temp_new_score = 0;
     for (int j = 0; j < 12; j++){
-            for (int k = 0; k < 12; k++){
-                if(user_state[j][k] == (char)(i + 2)){
-                    turn_score += pow(recursive_calculate(j, k, (char)(i + 2)), 1.25);
-                }
+        for (int k = 0; k < 12; k++){
+            if(user_state[j][k] == turn){
+                turn_score += pow(recursive_calculate(j, k, turn), 1.25);
             }
         }
+    }
+    temp_turn_score = (int)(turn_score+0.5);
     for (int i = 0; i < 4; i++){
         if (i + 2 == turn - '0'){
             continue;
@@ -157,7 +159,8 @@ bool GameState::is_winner(char turn) {
                 }
             }
         }
-        if(new_score > turn_score){
+        temp_new_score = (int)(new_score+0.5);
+        if(temp_new_score > temp_turn_score){
             return false;
         }
     }
