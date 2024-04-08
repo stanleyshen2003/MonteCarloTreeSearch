@@ -24,7 +24,7 @@ TicTacToe_state::TicTacToe_state(const TicTacToe_state &other)
 }
 
 bool TicTacToe_state::player_won(char player) const {
-    if (player != 'x' and player != 'o') cerr << "Warning: check winner for unknown player" << endl;
+    if (player != 'x' && player != 'o') cerr << "Warning: check winner for unknown player" << endl;
     for (int i = 0 ; i < 3 ; i++) {
         if (board[i][0] == player && board[i][1] == player && board[i][2] == player) return true;
         if (board[0][i] == player && board[1][i] == player && board[2][i] == player) return true;
@@ -74,6 +74,7 @@ double TicTacToe_state::rollout() const {
     if (is_terminal()) return (winner == 'x') ? 1.0 : (winner == 'd') ? 0.5 : 0.0;
     // Simulate a completely random game
     // Note: dequeue is not very efficient for random accesses but vector is not efficient for deletes
+    // all available first moves
     deque<int> available;
     for (int i = 0 ; i < 9 ; i++){
         if (board[i / 3][i % 3] == ' ') {
@@ -101,6 +102,7 @@ double TicTacToe_state::rollout() const {
         }
         first = false;
     } while (!curstate->is_terminal());
+    // winner condition !!!!!!!!!!!
     double res = (curstate->winner == 'x') ? 1.0 : (curstate->winner == 'd') ? 0.5 : 0.0;
     delete curstate;
     return res;
