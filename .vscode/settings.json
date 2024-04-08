@@ -1,6 +1,8 @@
 {
     "files.associations": {
         "vector": "cpp",
-        "queue": "cpp"
+        "queue": "cpp",
+        "cmath": "cpp",
+        "utility": "cpp"
     }
 }

@@ -1,7 +1,12 @@
 #include <unordered_map>
 #include <string>
 #include <queue>
+#include <vector>
+#include <cmath>
+#include <iostream>
+
 #define pii pair<int, int>
+#define puu pair<unsigned int, unsigned int>
 using namespace std;
 
 
@@ -19,7 +24,8 @@ class GameState {
         char user_state[12][12];
         int sheep_state[12][12];
         char turn;
-        int directions[8][2] = {{-1, -1}, {-1, 0}, {-1, 1}, {0, -1}, {0, 1}, {1, -1}, {1, 0}, {1, 1}};
+        int directions8[8][2] = {{-1, -1}, {-1, 0}, {-1, 1}, {0, -1}, {0, 1}, {1, -1}, {1, 0}, {1, 1}};
+        int directions4[4][2] = {{-1, 0}, {0, -1}, {0, 1}, {1, 0}};
         GameState(int user_state[12][12], int sheep_state[12][12], char turn);
         GameState(const GameState* state);
         ~GameState();
@@ -28,6 +34,7 @@ class GameState {
         void next_state(Action& action);
         bool is_terminal();
         bool is_winner(char turn);
+        int recursive_calculate(int x, int y, char person);
 };
 
 GameState::GameState(int user_state[12][12], int sheep_state[12][12], char turn) : turn(turn) {
@@ -56,7 +63,7 @@ vector<Action> GameState::get_actions() {
         for (int j = 0; j < 12; j++) {
             if (user_state[i][j] == turn && sheep_state[i][j] > 1) {
                 for(int k = 0; k < 8; k++){
-                    int x = i + directions[k][0], y = j + directions[k][1];
+                    int x = i + directions8[k][0], y = j + directions8[k][1];
                     if(x >= 0 && x < 12 && y >= 0 && y < 12 && user_state[x][y]  == '1'){
                         for(int l = 1; l < sheep_state[i][j]; l++){
                             actions.push_back(Action(i, j, l, k));
@@ -96,10 +103,10 @@ void GameState::next_state(Action& action) {
     }
     int x = action.x, y = action.y, n = action.n, dir = action.dir;
     sheep_state[x][y] -= n;
-    x += directions[dir][0];
-    y += directions[dir][1];
+    x += directions8[dir][0];
+    y += directions8[dir][1];
     while(1){
-        int new_x = x + directions[dir][0], new_y = y + directions[dir][1];
+        int new_x = x + directions8[dir][0], new_y = y + directions8[dir][1];
         if(new_x < 0 || new_x >= 12 || new_y < 0 || new_y >= 12 || user_state[new_x][new_y] != '1'){
             break;
         }
@@ -119,7 +126,7 @@ bool GameState::is_terminal() {
         for (int j = 0; j < 12; j++) {
             if (sheep_state[i][j] > 1) {
                 for(int k = 0; k < 8; k++){
-                    if(user_state[i + directions[k][0]][j + directions[k][1]] == '1'){
+                    if(user_state[i + directions8[k][0]][j + directions8[k][1]] == '1'){
                         return false;
                     }
                 }
@@ -130,22 +137,61 @@ bool GameState::is_terminal() {
     return true;
 }
 
+bool GameState::is_winner(char turn) {
+    double turn_score = 0, new_score = 0;
+    for (int j = 0; j < 12; j++){
+            for (int k = 0; k < 12; k++){
+                if(user_state[j][k] == (char)(i + 2)){
+                    turn_score += pow(recursive_calculate(j, k, (char)(i + 2)), 1.25);
+                }
+            }
+        }
+    for (int i = 0; i < 4; i++){
+        if (i + 2 == turn - '0'){
+            continue;
+        }
+        for (int j = 0; j < 12; j++){
+            for (int k = 0; k < 12; k++){
+                if(user_state[j][k] == (char)(i + 2)){
+                    new_score += pow(recursive_calculate(j, k, (char)(i + 2)), 1.25);
+                }
+            }
+        }
+        if(new_score > turn_score){
+            return false;
+        }
+    }
+    return true;
+}
+
+int GameState::recursive_calculate(int x, int y, char person){
+    int score = 0;
+    user_state[x][y] = '0';
+    for(int i = 0; i < 4; i++){
+        int new_x = x + directions4[i][0], new_y = y + directions4[i][1];
+        if(new_x >= 0 && new_x < 12 && new_y >= 0 && new_y < 12 && user_state[new_x][new_y] == person){
+            score += recursive_calculate(new_x, new_y, person);
+        }
+    }
+    return score + 1;
+}
 
 class MCTS_agent {
     public:
-        unordered_map<string, pii> move_map;
+        unordered_map<string, puu> move_map;
         int max_iter, max_seconds;
         char player_turn;
         MCTS_agent(int max_iter = 2000, int max_seconds = 2, char player_turn = '1');
         ~MCTS_agent();
 
         Action decide_step(GameState& state);
-        void rollout(GameState& state);
+
+
 };
 
 
 MCTS_agent::MCTS_agent(int max_iter, int max_seconds, char player_turn) : max_iter(max_iter), max_seconds(max_seconds), player_turn(player_turn) {
-    move_map = unordered_map<string, pii>();
+    move_map = unordered_map<string, puu>();
 }
 
 MCTS_agent::~MCTS_agent() {
@@ -190,7 +236,7 @@ Action MCTS_agent::decide_step(GameState& state) {
             new_key = Q.front();
             Q.pop();
             if(move_map.find(new_key) == move_map.end()){
-                move_map[new_key] = pii(0, 0);
+                move_map[new_key] = puu(0, 0);
             }
             if(is_winner){
                 move_map[new_key].first += 1;
@@ -230,7 +276,24 @@ Action MCTS_agent::decide_step(GameState& state) {
     }
 
     // find the best action
+    double max = -1;
+    Action best_action;
+    double ucb;
+    double t = 0;
+    for(auto action : actions){
+        new_key = key + action.get_key();
+        t += move_map[new_key].second + move_map[new_key].first;
+    }
+    for(auto action : actions){
+        new_key = key + action.get_key();
+        ucb = (double)move_map[new_key].first / ((double)move_map[new_key].first + (double)move_map[new_key].second) + sqrt(2 * log(t) / ((double)move_map[new_key].first + (double)move_map[new_key].second));
+        if(ucb > max){
+            max = ucb;
+            best_action = action;
+        }
+    }
 
 
-    return Action(best_action.second / 100, (best_action.second / 10) % 10, best_action.second % 10, -1);
+
+    return best_action;
 }
