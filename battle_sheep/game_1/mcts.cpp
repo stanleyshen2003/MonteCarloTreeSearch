@@ -54,6 +54,8 @@ class GameState {
 
         // calculate the score of the player with the given turn, used in is_winner()
         int recursive_calculate(int x, int y, char person);
+
+        double calculate_state_UCB(int x, int y);
 };
 
 GameState::GameState(int user_state[12][12], int sheep_state[12][12], char turn) : turn(turn) {
@@ -235,7 +237,8 @@ Action MCTS_agent::decide_step(GameState& state) {
     int action_index;
     Action now_action(-1, -1, -1, -1);
     vector<Action> actions = state.get_actions();
-
+    if (actions.size() == 0)
+        return Action(-1, -1, -1, -1);
     
     queue<string> Q;
     for(auto& action : actions){
@@ -272,9 +275,28 @@ Action MCTS_agent::decide_step(GameState& state) {
         }
     }
 
+    vector<int> Q_counts;
+    int total_count = 0;
+    for(auto action : actions){
+        Q_counts.push_back(move_map[key+action.get_key()].first + move_map[key + action.get_key()].second);
+        total_count += Q_counts.back();
+    }
+    vector<double> UCBs;
+    for(int i = 0; i < Q_counts.size(); i++){
+        UCBs.push_back((double)move_map[key+actions[i].get_key()].first / (double)Q_counts[i] + sqrt(2 * log(total_count) / Q_counts[i]));
+    }
+
     // rollout
     for(int i = 0; i < max_iter; i++){
+        // select max action
         GameState new_state(&state);
+        auto max_iter = max_element(UCBs.begin(), UCBs.end());
+        int max_index = distance(UCBs.begin(), max_iter);
+        now_action = actions[max_index];
+        Q.push(key + now_action.get_key());
+        new_state.next_state(now_action);
+
+        // go down the tree
         while(!new_state.is_terminal()){
             vector<Action> new_actions = new_state.get_actions();
             if(new_actions.size() == 0){
@@ -287,7 +309,7 @@ Action MCTS_agent::decide_step(GameState& state) {
             }
         }
 
-        // update move_map
+        // update move_map and UCB values
         bool is_winner = new_state.is_winner(player_turn);
         while(!Q.empty()){
             new_key = Q.front();
@@ -299,6 +321,13 @@ Action MCTS_agent::decide_step(GameState& state) {
                 move_map[new_key].first += 1;
             }
             move_map[new_key].second += 1;
+        }
+        if(is_winner){
+            total_count++;
+            Q_counts[max_index]++;
+            for(int j = 0; j < Q_counts.size(); j++){
+                UCBs[j] = (double)move_map[key+actions[j].get_key()].first / (double)Q_counts[j] + sqrt(2 * log(total_count) / Q_counts[j]);
+            }
         }
     }
 
@@ -323,4 +352,11 @@ Action MCTS_agent::decide_step(GameState& state) {
 
 
     return best_action;
+}
+
+double GameState::calculate_state_UCB(int x, int y){
+    double win = 0, total = 0;
+    win = (double)x;
+    total = (double)y + (double)x;
+    return (double)win / total + sqrt(2 * log(total) / total);
 }
