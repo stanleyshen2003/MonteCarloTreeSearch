@@ -54,8 +54,6 @@ class GameState {
 
         // calculate the score of the player with the given turn, used in is_winner()
         int recursive_calculate(int x, int y, char person);
-
-        double calculate_state_UCB(int x, int y);
 };
 
 GameState::GameState(int user_state[12][12], int sheep_state[12][12], char turn) : turn(turn) {
@@ -352,11 +350,4 @@ Action MCTS_agent::decide_step(GameState& state) {
 
 
     return best_action;
-}
-
-double GameState::calculate_state_UCB(int x, int y){
-    double win = 0, total = 0;
-    win = (double)x;
-    total = (double)y + (double)x;
-    return (double)win / total + sqrt(2 * log(total) / total);
 }
