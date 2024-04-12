@@ -74,7 +74,7 @@ public:
 class MCTS_agent {
     public:
         // this map stores the number of wins and the number of loses for each state (I'm not sure how to use this)
-        unordered_map<string, puu> move_map;
+        unordered_map<string, MCTSNode*> node_map;
 
         // config of the agent
         int max_iter, max_seconds;

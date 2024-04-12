@@ -273,6 +273,7 @@ Action MCTS_agent::decide_step(GameState& state) {
         }
     }
 
+    // calculate UCB values
     vector<int> Q_counts;
     int total_count = 0;
     for(auto action : actions){
@@ -320,6 +321,8 @@ Action MCTS_agent::decide_step(GameState& state) {
             }
             move_map[new_key].second += 1;
         }
+
+        // update UCBs
         if(is_winner){
             total_count++;
             Q_counts[max_index]++;

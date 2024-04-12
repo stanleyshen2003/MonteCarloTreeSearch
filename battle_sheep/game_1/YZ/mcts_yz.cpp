@@ -4,6 +4,7 @@
 #include <vector>
 #include <cmath>
 #include <iostream>
+#include <float.h>
 #include "./mcts_yz.h"
 
 #define pii pair<int, int>
@@ -163,6 +164,9 @@ int GameState::recursive_calculate(int x, int y, char person){
 /****MCTSNode****/
 // Add a child node to this node
 MCTSNode* MCTSNode::add_child(const GameState& state, const Action& action) {
+    // "this" should be a pointer
+    // if the turn is yours, save the pointer to the map using the key of the state + action
+    // ask me if you are not familiar with map
     MCTSNode* child = new MCTSNode(state, this, action);
     children.push_back(child);
     return child;
@@ -170,21 +174,21 @@ MCTSNode* MCTSNode::add_child(const GameState& state, const Action& action) {
 
 // Select a child node based on UCB criteria
 MCTSNode* MCTSNode::select_child() {
-        double max_ucb = -1;
-        MCTSNode* selected_child = nullptr;
-        for (MCTSNode* child : children) {
-            double ucb = calculate_ucb(child);
-            if (ucb > max_ucb) {
-                max_ucb = ucb;
-                selected_child = child;
-            }
+    double max_ucb = -1;
+    MCTSNode* selected_child = nullptr;
+    for (MCTSNode* child : children) {
+        double ucb = calculate_ucb(child);
+        if (ucb > max_ucb) {
+            max_ucb = ucb;
+            selected_child = child;
         }
-        return selected_child;
+    }
+    return selected_child;
 }
 
 double MCTSNode::calculate_ucb(MCTSNode* node) {
     if (node->visits == 0) {
-        return INFINITY; // Ensure unvisited nodes are prioritized
+        return DBL_MAX; // Ensure unvisited nodes are prioritized
     }
     return (node->score / node->visits) + sqrt(2 * log(this->visits) / node->visits);
 }
@@ -204,14 +208,14 @@ void MCTS_agent::expand_node(MCTSNode* node) {
     }
 
     // rollout (we can thread this part)
-    for(auto _action: actions){
+    for(auto action_t: actions){
         GameState state_copy = node->state; // Avoid modify the current node's state
-        state_copy.next_state(_action); // Update the state with the chosen action
-        MCTSNode* child_node = node->add_child(state_copy, _action); // Add a child node with the updated state
+        state_copy.next_state(action_t); // Update the state with the chosen action_t
+        MCTSNode* child_node = node->add_child(state_copy, action_t); // Add a child node with the updated state
 
         int rollout_result = rollout(child_node->state);
         backpropagate(child_node, rollout_result);
-    }    
+    }
 }
 
 int MCTS_agent::rollout(GameState state) {
@@ -265,11 +269,11 @@ void MCTS_agent::delete_tree(MCTSNode* node) {
 }
 
 MCTS_agent::MCTS_agent(int max_iter, int max_seconds, char player_turn) : max_iter(max_iter), max_seconds(max_seconds), player_turn(player_turn) {
-    move_map = unordered_map<string, puu>();
+    node_map = unordered_map<string, MCTSNode*>();
 }
 
 MCTS_agent::~MCTS_agent() {
-    move_map.clear();
+    node_map.clear();
 }
 
 Action MCTS_agent::decide_step(GameState& state) {
@@ -277,6 +281,13 @@ Action MCTS_agent::decide_step(GameState& state) {
         return Action(-1, -1, -1, -1);
     }
 
+    /*
+    modify here
+    have an empty node (root)
+    1. set the state of the root to the current state
+    2. find the actions
+    3. for each action, find the place of the child node using the map and put it into the root (remember to add the number of visit in root)
+    */
     // Initialize the root node of the MCTS
     MCTSNode* root = new MCTSNode(state);
 
@@ -294,6 +305,7 @@ Action MCTS_agent::decide_step(GameState& state) {
 
     Action best_action = get_best_action(root);
 
+    // disable this
     delete_tree(root);
 
 
