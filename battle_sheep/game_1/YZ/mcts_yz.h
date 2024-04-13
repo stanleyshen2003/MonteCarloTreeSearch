@@ -36,6 +36,9 @@ class GameState {
         // get all possible actions in the current state
         vector<Action> get_actions();
 
+        // get all possible initial position
+        vector<Action> get_inipos_action();
+
         // get the key of the state for the map (you can ignore this)
         string get_key();
 
@@ -73,7 +76,7 @@ public:
 
 class MCTS_agent {
     public:
-        // this map stores the number of wins and the number of loses for each state (I'm not sure how to use this)
+        // this map stores the number of wins and the number of loses for each state
         unordered_map<string, MCTSNode*> node_map;
 
         // config of the agent
@@ -86,9 +89,13 @@ class MCTS_agent {
         MCTS_agent(int max_iter = 2000, int max_seconds = 2, char player_turn = '1');
         ~MCTS_agent();
 
-        // decide the next step given present state (maybe adding a rollout function would be better)
+        // decide the next step given present state
+        // it must "decide_inipos" first to build the initial MCTS tree
         Action decide_step(GameState& state);
-    
+        
+        // get the initial position for initial map
+        Action decide_inipos(GameState& state);
+
     private:
         MCTSNode* select_node(MCTSNode*);
         void expand_node(MCTSNode*);

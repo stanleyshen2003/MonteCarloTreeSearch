@@ -57,6 +57,22 @@ vector<Action> GameState::get_actions() {
     return actions;
 }
 
+vector<Action> GameState::get_inipos_action(){
+    vector<Action> actions;
+    for (int i = 0; i < 12; i++) {
+        for (int j = 0; j < 12; j++) {
+            for(int k = 0; k < 4; k++){
+                int x = i + directions4[k][0], y = j + directions4[k][1];
+                if(x >= 0 && x < 12 && y >= 0 && y < 12 && user_state[x][y]  == '0'){ // 0 for wall
+                        actions.push_back(Action(i, j, 16, k));
+                }
+            }
+        }
+    }
+
+    return actions;
+}
+
 string GameState::get_key() {
     /*
     This function returns the key of the state for the map
@@ -166,9 +182,9 @@ int GameState::recursive_calculate(int x, int y, char person){
 MCTSNode* MCTSNode::add_child(const GameState& state, const Action& action) {
     // "this" should be a pointer
     // if the turn is yours, save the pointer to the map using the key of the state + action
-    // ask me if you are not familiar with map
     MCTSNode* child = new MCTSNode(state, this, action);
     children.push_back(child);
+
     return child;
 }
 
@@ -207,15 +223,24 @@ void MCTS_agent::expand_node(MCTSNode* node) {
         return ; // No valid actions to expand
     }
 
-    // rollout (we can thread this part)
+    // add child to selected node
     for(auto action_t: actions){
         GameState state_copy = node->state; // Avoid modify the current node's state
         state_copy.next_state(action_t); // Update the state with the chosen action_t
         MCTSNode* child_node = node->add_child(state_copy, action_t); // Add a child node with the updated state
 
-        int rollout_result = rollout(child_node->state);
-        backpropagate(child_node, rollout_result);
-    }
+        // update node map
+        string StateKey = state_copy.get_key();
+        string ActionKey = action_t.get_key();
+        node_map[StateKey + ActionKey] = child_node;
+    }        
+    
+    // random select a child to rollout
+    int child_index = ((int)rand()) % node->children.size(); 
+    MCTSNode* selected_child = node->children[child_index];
+
+    int rollout_result = rollout(selected_child->state);
+    backpropagate(selected_child, rollout_result);
 }
 
 int MCTS_agent::rollout(GameState state) {
@@ -229,7 +254,7 @@ int MCTS_agent::rollout(GameState state) {
             state.next_state(random_action); // Update the state with the chosen action
         }
     }
-    if (state.is_winner('1')) {
+    if (state.is_winner(player_turn)) {
         return 1; // Return 1 for a win
     } else {
         return 0; // Return 0 for a loss (or draw ?)
@@ -276,6 +301,38 @@ MCTS_agent::~MCTS_agent() {
     node_map.clear();
 }
 
+Action MCTS_agent::decide_inipos(GameState& state){
+    Action non_action = Action(-1, -1, -1, -1);
+    MCTSNode* root = new MCTSNode(state, nullptr, non_action);
+    
+    vector<Action> ini_pos_action = state.get_inipos_action();
+    // add child to MCTS root
+    for(auto action_t: ini_pos_action){
+        GameState state_copy = root->state; // Avoid modify the current node's state
+        state_copy.next_state(action_t); // Update the state with the chosen action_t
+        MCTSNode* child_node = root->add_child(state_copy, action_t); // Add a child node with the updated state
+
+        // update node map
+        string StateKey = state_copy.get_key();
+        string ActionKey = action_t.get_key();
+        node_map[StateKey + ActionKey] = child_node;
+    }
+
+    // Perform MCTS iterations
+    for (int iter = 0; iter < max_iter; iter++) {
+        // Choose a node using UCB
+        MCTSNode* selected_node = select_node(root);
+
+        // Expand the selected node by adding a child node (and rollout + backpropagate)
+        expand_node(selected_node);
+    }
+
+    Action best_action = get_best_action(root);
+
+    return best_action;
+}
+
+
 Action MCTS_agent::decide_step(GameState& state) {
     if (state.is_terminal()) {
         return Action(-1, -1, -1, -1);
@@ -288,26 +345,35 @@ Action MCTS_agent::decide_step(GameState& state) {
     2. find the actions
     3. for each action, find the place of the child node using the map and put it into the root (remember to add the number of visit in root)
     */
-    // Initialize the root node of the MCTS
-    MCTSNode* root = new MCTSNode(state);
+
+    // set a subtree root to find the action for given state
+    Action non_action = Action(-1, -1, -1, -1);
+    MCTSNode* sub_root = new MCTSNode(state, nullptr, non_action);
+
+    vector<Action> actions = sub_root->state.get_actions();
+    string RootStateKey = sub_root->state.get_key();
+    for (auto action: actions){
+        string ActionKey = action.get_key();
+
+        MCTSNode* finded_child = node_map[RootStateKey + ActionKey];
+        sub_root->children.push_back(finded_child);
+    }
 
     // Perform MCTS iterations
     for (int iter = 0; iter < max_iter; iter++) {
-        // first iter: root has no children
-        if (root->children.empty()) expand_node(root);
-
         // Choose a node using UCB
-        MCTSNode* selected_node = select_node(root);
+        MCTSNode* selected_node = select_node(sub_root);
 
         // Expand the selected node by adding a child node (and rollout + backpropagate)
         expand_node(selected_node);
     }
 
-    Action best_action = get_best_action(root);
+    for (auto child: sub_root->children){        
+        sub_root->visits += child->visits; // add child visits to temp root -> to calculate UCB
+    }
 
-    // disable this
-    delete_tree(root);
-
+    Action best_action = get_best_action(sub_root);
+    delete sub_root;
 
     return best_action;
 }
