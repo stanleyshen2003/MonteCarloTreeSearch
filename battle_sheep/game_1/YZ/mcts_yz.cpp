@@ -338,7 +338,7 @@ Action MCTS_agent::get_best_action(MCTSNode* root) {
             best_action = child->action;
         }
     }
-    cout << "max_score: " << max_score << endl;
+    // cout << "max_score: " << max_score << endl; /////
     return best_action;
 }
 
@@ -377,13 +377,6 @@ Action MCTS_agent::decide_inipos(GameState& state){
         // update node map
         string StateKey = state_copy.get_key();
         string ActionKey = action_t.get_key();
-        // this supposed to be the wrong one?
-        // check this
-        /*
-        if (state_copy.turn == player_turn){
-            node_map[root->state.get_key() + ActionKey] = child_node;
-        }
-        */
         node_map[StateKey + ActionKey] = child_node;
     }
     
@@ -426,12 +419,8 @@ Action MCTS_agent::decide_step(GameState& state) {
     for (auto action: actions){
         string ActionKey = action.get_key();
 
-        auto finded_child = node_map.find(RootStateKey + ActionKey);
-        if (finded_child != node_map.end()){
-            sub_root->children.push_back((*finded_child).second);
-            sub_root->visits += (*finded_child).second->visits;
-        }
-
+        MCTSNode* finded_child = node_map[RootStateKey + ActionKey];
+        sub_root->children.push_back(finded_child);
     }
 
     // Perform MCTS iterations
@@ -443,10 +432,9 @@ Action MCTS_agent::decide_step(GameState& state) {
         expand_node(selected_node);
     }
 
-    // do this before MCTS interation for UCB?
-    // for (auto child: sub_root->children){        
-    //     sub_root->visits += child->visits; // add child visits to temp root -> to calculate UCB
-    // }
+    for (auto child: sub_root->children){        
+        sub_root->visits += child->visits; // add child visits to temp root -> to calculate UCB
+    }
 
     Action best_action = get_best_action(sub_root);
     delete sub_root;
