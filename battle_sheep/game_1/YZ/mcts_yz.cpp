@@ -327,7 +327,7 @@ Action MCTS_agent::get_best_action(MCTSNode* root) {
             best_action = child->action;
         }
     }
-    cout << "max_score: " << max_score << endl;
+    // cout << "max_score: " << max_score << endl; /////
     return best_action;
 }
 
