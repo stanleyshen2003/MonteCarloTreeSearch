@@ -27,6 +27,7 @@ std::vector<int> InitPos(int mapStat[12][12], int playerID)
 		Write your code here
 	*/
 	int ini_sheep_state[12][12] = {0};
+	char turn = playerID + '1';
 	// I think this should be 1
 	char turn = playerID + '1';
 	GameState ini_game_state(mapStat, ini_sheep_state, turn);
@@ -65,7 +66,7 @@ std::vector<int> GetStep(int playerID,int mapStat[12][12], int sheepStat[12][12]
 	/*
 		Write your code here
 	*/
-	char turn = playerID + '0';
+	char turn = playerID + '1';
 	GameState gamestate(mapStat, sheepStat, turn);
 	Action decided_action = game1_agent.decide_step(gamestate);
 
@@ -98,4 +99,5 @@ int main()
 		std::vector<int> step = GetStep(playerID,mapStat,sheepStat);
 		SendStep(id_package, step);
 	}
+
 }

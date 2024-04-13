@@ -93,6 +93,26 @@ string GameState::get_key() {
     return key;
 }
 
+void GameState::print_gamer_map(){
+    for (int i = 0; i < 12; i++){
+        for (int j = 0; j < 12; j++){
+            cout << ' ' <<  user_state[i][j];
+        }
+
+        cout << endl;
+    }
+}
+
+void GameState::print_sheep_map(){
+    for (int i = 0; i < 12; i++){
+        for (int j = 0; j < 12; j++){
+            cout << " " + to_string(sheep_state[i][j]);
+        }
+
+        cout << endl;
+    }
+}
+
 void GameState::next_state(Action& action) {
     /*
     This function update the state of the game according to the action
@@ -122,6 +142,20 @@ void GameState::next_state(Action& action) {
     turn = (char)((int)turn + 1);
     if(turn == '6')
         turn = '2';
+}
+
+void GameState::after_inipos_state(Action& action){
+    /*
+    This function update the state of the game according to the decided initial position
+    */
+    if (action.x == -1) {
+        return;
+    }
+
+    int x = action.x, y = action.y, n = action.n, dir = action.dir;
+
+    sheep_state[x][y] += n;
+    user_state[x][y] = turn;
 }
 
 bool GameState::is_terminal() {
@@ -225,7 +259,15 @@ MCTSNode* MCTS_agent::select_node(MCTSNode* node) {
 
 void MCTS_agent::expand_node(MCTSNode* node) {
     vector<Action> actions = node->state.get_actions(); // Get all possible actions
+
+    // cout << "selected state: " << endl; /////
+    // node->state.print_sheep_map(); /////
+    // cout << endl;
+    // node->state.print_gamer_map(); /////
+    
     if (actions.empty()) {
+        // cout << "action empty" <<endl; /////
+        node->visits++; // avoid keeping choose this node
         return ; // No valid actions to expand
     }
 
@@ -253,6 +295,7 @@ void MCTS_agent::expand_node(MCTSNode* node) {
     MCTSNode* selected_child = node->children[child_index];
 
     int rollout_result = rollout(selected_child->state);
+    // cout << "rollout result: " << rollout_result << endl; /////
     backpropagate(selected_child, rollout_result);
 }
 
@@ -287,11 +330,15 @@ Action MCTS_agent::get_best_action(MCTSNode* root) {
     Action best_action;
     for (MCTSNode* child : root->children) {
         double average_score = child->score / child->visits;
+        // cout << "score: " << child->score << " visits: " << child->visits << endl;/////
+        // cout << "average score: " << average_score << endl;/////
+        // cout << "action: " << child->action.get_key() << endl; /////
         if (average_score > max_score) {
             max_score = average_score;
             best_action = child->action;
         }
     }
+    cout << "max_score: " << max_score << endl;
     return best_action;
 }
 
@@ -317,14 +364,14 @@ MCTS_agent::~MCTS_agent() {
 Action MCTS_agent::decide_inipos(GameState& state){
     Action non_action = Action(-1, -1, -1, -1);
     MCTSNode* root = new MCTSNode(state, nullptr, non_action);
+    // cout << "root state: " << endl; /////
+    // root->state.print_gamer_map(); /////
     
     vector<Action> ini_pos_action = state.get_inipos_action();
     // add child to MCTS root
     for(auto action_t: ini_pos_action){
         GameState state_copy = root->state; // Avoid modify the current node's state
-        // this will cause bug because of the action implementation
-        // I think we have to implement another next state for the initial position
-        state_copy.next_state(action_t); // Update the state with the chosen action_t
+        state_copy.after_inipos_state(action_t); // Update the state with the chosen action_t
         MCTSNode* child_node = root->add_child(state_copy, action_t); // Add a child node with the updated state
 
         // update node map
@@ -339,11 +386,13 @@ Action MCTS_agent::decide_inipos(GameState& state){
         */
         node_map[StateKey + ActionKey] = child_node;
     }
-
+    
     // Perform MCTS iterations
     for (int iter = 0; iter < max_iter; iter++) {
         // Choose a node using UCB
         MCTSNode* selected_node = select_node(root);
+        // cout << "selected node action: " << selected_node->action.get_key() <<endl;/////
+        // cout << "selected node visit and score: " << selected_node->visits << " " << selected_node->visits << endl; /////
 
         // Expand the selected node by adding a child node (and rollout + backpropagate)
         expand_node(selected_node);

@@ -33,6 +33,10 @@ class GameState {
         GameState(const GameState* state);
         ~GameState();
 
+        // easy to debug
+        void print_sheep_map();
+        void print_gamer_map();
+
         // get all possible actions in the current state
         vector<Action> get_actions();
 
@@ -44,6 +48,9 @@ class GameState {
 
         // update the state of the game according to the action
         void next_state(Action& action);
+
+        // update the state of the game according to the decided initial position
+        void after_inipos_state(Action& action);
 
         // check if the game terminates
         bool is_terminal();
