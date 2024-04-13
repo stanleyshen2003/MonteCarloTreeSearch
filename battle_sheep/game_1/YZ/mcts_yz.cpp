@@ -58,19 +58,25 @@ vector<Action> GameState::get_actions() {
 }
 
 vector<Action> GameState::get_inipos_action(){
-    vector<Action> actions;
+    // vector cause duplicate actions
+    unordered_map<string, Action> actions;
     for (int i = 0; i < 12; i++) {
         for (int j = 0; j < 12; j++) {
             for(int k = 0; k < 4; k++){
                 int x = i + directions4[k][0], y = j + directions4[k][1];
                 if(x >= 0 && x < 12 && y >= 0 && y < 12 && user_state[x][y]  == '0'){ // 0 for wall
-                        actions.push_back(Action(i, j, 16, k));
+                    Action new_action = (Action(i, j, 16, k));
+                    actions[new_action.get_key()] = new_action;
                 }
             }
         }
     }
+    vector<Action> actions_ret;
+    for(auto action: actions){
+        actions_ret.push_back(action.second);
+    }
 
-    return actions;
+    return actions_ret;
 }
 
 string GameState::get_key() {
@@ -232,6 +238,13 @@ void MCTS_agent::expand_node(MCTSNode* node) {
         // update node map
         string StateKey = state_copy.get_key();
         string ActionKey = action_t.get_key();
+        // this supposed to be the wrong one?
+        // check this
+        /*
+        if (state_copy.turn == player_turn){
+            node_map[root->state.get_key() + ActionKey] = child_node;
+        }
+        */
         node_map[StateKey + ActionKey] = child_node;
     }        
     
@@ -309,6 +322,8 @@ Action MCTS_agent::decide_inipos(GameState& state){
     // add child to MCTS root
     for(auto action_t: ini_pos_action){
         GameState state_copy = root->state; // Avoid modify the current node's state
+        // this will cause bug because of the action implementation
+        // I think we have to implement another next state for the initial position
         state_copy.next_state(action_t); // Update the state with the chosen action_t
         MCTSNode* child_node = root->add_child(state_copy, action_t); // Add a child node with the updated state
 
