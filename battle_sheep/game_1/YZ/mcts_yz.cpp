@@ -58,7 +58,7 @@ vector<Action> GameState::get_actions() {
 }
 
 vector<Action> GameState::get_inipos_action(){
-    // vector cause duplicate actions
+    // vector cause duplicate actions (I directly modify this)
     unordered_map<string, Action> actions;
     for (int i = 0; i < 12; i++) {
         for (int j = 0; j < 12; j++) {
@@ -155,6 +155,7 @@ void GameState::after_inipos_state(Action& action){
     int x = action.x, y = action.y, n = action.n, dir = action.dir;
 
     sheep_state[x][y] += n;
+    // (char)((int)turn + 1) ?
     user_state[x][y] = turn;
 }
 
@@ -280,7 +281,7 @@ void MCTS_agent::expand_node(MCTSNode* node) {
         // update node map
         string StateKey = state_copy.get_key();
         string ActionKey = action_t.get_key();
-        // this supposed to be the wrong one?
+        // this supposed to be the wrong one?  // check this
         // check this
         /*
         if (state_copy.turn == player_turn){
@@ -377,6 +378,7 @@ Action MCTS_agent::decide_inipos(GameState& state){
         // update node map
         string StateKey = state_copy.get_key();
         string ActionKey = action_t.get_key();
+        // same issue as the expand function
         node_map[StateKey + ActionKey] = child_node;
     }
     
@@ -421,6 +423,7 @@ Action MCTS_agent::decide_step(GameState& state) {
 
         MCTSNode* finded_child = node_map[RootStateKey + ActionKey];
         sub_root->children.push_back(finded_child);
+        sub_root->visits += finded_child->visits;
     }
 
     // Perform MCTS iterations
@@ -432,11 +435,15 @@ Action MCTS_agent::decide_step(GameState& state) {
         expand_node(selected_node);
     }
 
-    for (auto child: sub_root->children){        
-        sub_root->visits += child->visits; // add child visits to temp root -> to calculate UCB
-    }
+    // add the visits of the children to the root before UCB calculation
+    // for (auto child: sub_root->children){        
+    //     sub_root->visits += child->visits; // add child visits to temp root -> to calculate UCB
+    // }
 
     Action best_action = get_best_action(sub_root);
+
+    // there is actually more root to be deleted
+    // maybe we can save the initial root and delete in sample.cpp
     delete sub_root;
 
     return best_action;
