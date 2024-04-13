@@ -1,5 +1,5 @@
 
-#include "../STcpClient.h"
+#include "./STcpClient.h"
 #include <stdlib.h>
 #include <iostream>
 #include <vector>
