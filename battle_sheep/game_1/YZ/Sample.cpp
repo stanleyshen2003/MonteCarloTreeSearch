@@ -5,6 +5,10 @@
 #include <vector>
 #include "./mcts_yz.h"
 
+
+// Create MCTS agent
+MCTS_agent game1_agent;
+
 /*
     選擇起始位置
     選擇範圍僅限場地邊緣(至少一個方向為牆)
@@ -13,7 +17,7 @@
     init_pos=<x,y>,代表你要選擇的起始位置
     
 */
-std::vector<int> InitPos(int mapStat[12][12])
+std::vector<int> InitPos(int mapStat[12][12], int PlayerID)
 {
 	std::vector<int> init_pos;
 	init_pos.resize(2);
@@ -21,8 +25,12 @@ std::vector<int> InitPos(int mapStat[12][12])
 	/*
 		Write your code here
 	*/
-	
-    
+	int ini_sheep_state[12][12] = {0};
+	GameState ini_game_state(ini_game_state, ini_sheep_state, PlayerID);
+	Action ini_pos_action = game1_agent.decide_inipos(ini_game_state);
+
+	init_pos[0] = ini_pos_action[0];
+	init_pos[1] = ini_pos_action[1];  
     
     return init_pos;
 }
@@ -54,6 +62,13 @@ std::vector<int> GetStep(int playerID,int mapStat[12][12], int sheepStat[12][12]
 	/*
 		Write your code here
 	*/
+	GameState gamestate(mapStat, sheepStat, playerID);
+	Action decided_action = game1_agent.decide_step(gamestate);
+
+	step[0] = decided_action[0];
+	step[1] = decided_action[1];
+	step[2] = decided_action[2];
+	step[3] = decided_action[3];
     
     return step;
 }
@@ -67,7 +82,8 @@ int main()
 
 	// player initial
 	GetMap(id_package,playerID,mapStat);
-	std::vector<int> init_pos = InitPos(mapStat);
+
+	std::vector<int> init_pos = InitPos(mapStat, playerID);
 	SendInitPos(id_package,init_pos);
 
 	while (true)
