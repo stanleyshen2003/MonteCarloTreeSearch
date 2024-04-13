@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <iostream>
 #include <vector>
+#include <string>
 #include "./mcts_yz.h"
 
 
@@ -17,7 +18,7 @@ MCTS_agent game1_agent;
     init_pos=<x,y>,代表你要選擇的起始位置
     
 */
-std::vector<int> InitPos(int mapStat[12][12], int PlayerID)
+std::vector<int> InitPos(int mapStat[12][12], int playerID)
 {
 	std::vector<int> init_pos;
 	init_pos.resize(2);
@@ -26,11 +27,12 @@ std::vector<int> InitPos(int mapStat[12][12], int PlayerID)
 		Write your code here
 	*/
 	int ini_sheep_state[12][12] = {0};
-	GameState ini_game_state(ini_game_state, ini_sheep_state, PlayerID);
+	char turn = playerID + '0';
+	GameState ini_game_state(mapStat, ini_sheep_state, turn);
 	Action ini_pos_action = game1_agent.decide_inipos(ini_game_state);
 
-	init_pos[0] = ini_pos_action[0];
-	init_pos[1] = ini_pos_action[1];  
+	init_pos[0] = ini_pos_action.x;
+	init_pos[1] = ini_pos_action.y;  
     
     return init_pos;
 }
@@ -62,13 +64,14 @@ std::vector<int> GetStep(int playerID,int mapStat[12][12], int sheepStat[12][12]
 	/*
 		Write your code here
 	*/
-	GameState gamestate(mapStat, sheepStat, playerID);
+	char turn = playerID + '0';
+	GameState gamestate(mapStat, sheepStat, turn);
 	Action decided_action = game1_agent.decide_step(gamestate);
 
-	step[0] = decided_action[0];
-	step[1] = decided_action[1];
-	step[2] = decided_action[2];
-	step[3] = decided_action[3];
+	step[0] = decided_action.x;
+	step[1] = decided_action.y;
+	step[2] = decided_action.n;
+	step[3] = decided_action.dir;
     
     return step;
 }
