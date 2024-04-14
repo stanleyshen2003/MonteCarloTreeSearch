@@ -295,9 +295,9 @@ void MCTS_agent::expand_node(MCTSNode* node) {
     // random select a child to rollout
     int child_index = ((int)rand()) % node->children.size(); 
     MCTSNode* selected_child = node->children[child_index];
-
+    //cout << "start rollout\n";
     int rollout_result = rollout(selected_child->state);
-    // cout << "rollout result: " << rollout_result << endl; /////
+    //cout << "rollout result: " << rollout_result << endl; /////
     backpropagate(selected_child, rollout_result);
 }
 
@@ -373,7 +373,7 @@ Action MCTS_agent::decide_inipos(GameState& state){
     root->state.print_gamer_map(); /////
     
     unordered_map<string, Action> ini_pos_action = state.get_inipos_action();
-    cout << "ini_pos_action size: " << ini_pos_action.size() << endl;
+    // cout << "ini_pos_action size: " << ini_pos_action.size() << endl;
     // add child to MCTS root
     for(auto action_t: ini_pos_action){
         GameState state_copy = root->state; // Avoid modify the current node's state
@@ -398,7 +398,7 @@ Action MCTS_agent::decide_inipos(GameState& state){
 
         // Expand the selected node by adding a child node (and rollout + backpropagate)
         expand_node(selected_node);
-        cout << iter << endl;
+        // cout << iter << endl;
     }
 
     // cout << "MCTS done" << endl;
@@ -419,7 +419,7 @@ Action MCTS_agent::decide_step(GameState& state) {
 
     vector<Action> actions = sub_root->state.get_actions();
 
-    cout << "action size: " << actions.size() << endl;
+    // cout << "action size: " << actions.size() << endl;
     // for(auto i: actions){
     //     cout << i.get_key()<< endl;
     // }
@@ -437,15 +437,15 @@ Action MCTS_agent::decide_step(GameState& state) {
         sub_root->children.push_back((*finded_child).second);
         sub_root->visits += (*finded_child).second->visits;
     }
-    cout << "sub_root children size: " << sub_root->children.size() << '\n';
+    // cout << "sub_root children size: " << sub_root->children.size() << '\n';
     // Perform MCTS iterations
     for (int iter = 0; iter < max_iter; iter++) {
         // Choose a node using UCB;
         MCTSNode* selected_node = select_node(sub_root);
-
+        // cout << "select done" << '\n';
         // Expand the selected node by adding a child node (and rollout + backpropagate)
         expand_node(selected_node);
-        cout << iter << '\n';
+        // cout << iter << '\n';
     }
     // cout << "MCTS done" << endl;
 

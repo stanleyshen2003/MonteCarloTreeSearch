@@ -27,8 +27,8 @@ std::vector<int> InitPos(int mapStat[12][12], int playerID)
 		Write your code here
 	*/
 	int ini_sheep_state[12][12] = {0};
-	playerID -= 30;
-	char turn = playerID + '0';
+	cout << "playerID: " << playerID << endl;
+	char turn = playerID + '1';
 	GameState ini_game_state(mapStat, ini_sheep_state, turn);
 	Action ini_pos_action = game1_agent.decide_inipos(ini_game_state);
 
