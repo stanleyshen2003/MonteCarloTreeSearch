@@ -96,7 +96,7 @@ class MCTS_agent {
         MCTSNode* delroot;
 
         // constructors and destructor
-        MCTS_agent(int max_iter = 15, int max_seconds = 2, char player_turn = '1');
+        MCTS_agent(int max_iter = 40, int max_seconds = 2, char player_turn = '1');
         ~MCTS_agent();
 
         // decide the next step given present state

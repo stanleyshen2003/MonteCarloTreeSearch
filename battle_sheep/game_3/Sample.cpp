@@ -3,7 +3,9 @@
 #include <stdlib.h>
 #include <iostream>
 #include <vector>
+#include "./mcts_yz.h"
 
+MCTS_agent game1_agent;
 /*
     選擇起始位置
     選擇範圍僅限場地邊緣(至少一個方向為牆)
@@ -20,6 +22,12 @@ std::vector<int> InitPos(int mapStat[12][12])
 	/*
 		Write your code here
 	*/
+	int ini_sheep_state[12][12] = {0};
+	GameState ini_game_state(mapStat, ini_sheep_state, '2');
+	Action ini_pos_action = game1_agent.decide_inipos(ini_game_state);
+
+	init_pos[0] = ini_pos_action.x;
+	init_pos[1] = ini_pos_action.y; 
     
     
     return init_pos;
@@ -51,7 +59,15 @@ std::vector<int> GetStep(int playerID,int mapStat[12][12], int sheepStat[12][12]
 	/*
 		Write your code here
 	*/
-    
+    char turn = playerID + '1';
+	GameState gamestate(mapStat, sheepStat, turn);
+	Action decided_action = game1_agent.decide_step(gamestate);
+
+	step[0] = decided_action.x;
+	step[1] = decided_action.y;
+	step[2] = decided_action.n;
+	step[3] = (decided_action.dir<4)?decided_action.dir+1:decided_action.dir+2;
+    cout << "Step: " << step[0] << " " << step[1] << " " << step[2] << " " << step[3] << endl;
     return step;
 }
 
