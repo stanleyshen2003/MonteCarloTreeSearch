@@ -103,10 +103,14 @@ class MCTS_agent {
         // get the initial position for initial map
         Action decide_inipos(GameState& state);
 
+        // find the first place to put initial sheep
+        Action middle_inipos(int mapState[12][12]);
+
     private:
         MCTSNode* select_node(MCTSNode*);
         void expand_node(MCTSNode*);
         int rollout(GameState);
+        int inipos_rollout(GameState);
         void backpropagate(MCTSNode*, int);
         Action get_best_action(MCTSNode*);
         void delete_tree(MCTSNode*);
