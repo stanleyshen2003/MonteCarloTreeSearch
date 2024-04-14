@@ -1,5 +1,5 @@
 32
-./sample/test.exe
+./sample/team32_agent1.exe
 2
 ./sample/Sample_2.exe
 3
