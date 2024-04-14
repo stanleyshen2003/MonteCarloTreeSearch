@@ -364,13 +364,13 @@ Action MCTS_agent::decide_inipos(GameState& state){
     MCTSNode* root = new MCTSNode(state, nullptr, non_action);
     delroot = root;
     player_turn = state.turn;
-    cout << "player turn: " << state.turn << endl;
-    cout << state.turn << endl;
+    // cout << "player turn: " << state.turn << endl;
+    // cout << state.turn << endl;
     // cout << "root state: " << endl; /////
-    root->state.print_gamer_map(); /////
+    // root->state.print_gamer_map(); /////
     
     unordered_map<string, Action> ini_pos_action = state.get_inipos_action();
-    cout << "ini_pos_action size: " << ini_pos_action.size() << endl;
+    // cout << "ini_pos_action size: " << ini_pos_action.size() << endl;
     // add child to MCTS root
     for(auto action_t: ini_pos_action){
         GameState state_copy = root->state; // Avoid modify the current node's state
@@ -395,7 +395,7 @@ Action MCTS_agent::decide_inipos(GameState& state){
 
         // Expand the selected node by adding a child node (and rollout + backpropagate)
         expand_node(selected_node);
-        cout << iter << endl;
+        // cout << iter << endl;
     }
 
     // cout << "MCTS done" << endl;
@@ -407,7 +407,7 @@ Action MCTS_agent::decide_inipos(GameState& state){
 
 
 Action MCTS_agent::decide_step(GameState& state) {
-    cout << player_turn << '\n';
+    // cout << player_turn << '\n';
     Action temp;
     int x, y;
     int store_x, store_y;
@@ -434,7 +434,7 @@ Action MCTS_agent::decide_step(GameState& state) {
         }
     }
 
-    cout << "x: " << store_x << " y: " << store_y << endl;
+    // cout << "x: " << store_x << " y: " << store_y << endl;
 
     pair<int, int> dir8_value[8];
     for(int i = 0; i < 8; i++){
@@ -486,11 +486,11 @@ Action MCTS_agent::decide_step(GameState& state) {
         }
     }
 
-    cout << "out_dir: " << out_dir << " out_dir_8: " << out_dir_8 << endl;
+    // cout << "out_dir: " << out_dir << " out_dir_8: " << out_dir_8 << endl;
 
     double amount = (double)state.sheep_state[store_x][store_y] * ((double)out_dir_8/((double)dircount + (double)out_dir_8));
-    cout << state.sheep_state[store_x][store_y] << " " << out_dir_8 << " " << dircount << endl;
-    cout << "amount: " << amount << endl;
+    // cout << state.sheep_state[store_x][store_y] << " " << out_dir_8 << " " << dircount << endl;
+    // cout << "amount: " << amount << endl;
     int n = (int)amount;
     if(n <= 0){
         n = 1;

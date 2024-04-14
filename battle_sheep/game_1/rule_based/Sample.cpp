@@ -29,7 +29,7 @@ std::vector<int> InitPos(int mapStat[12][12], int playerID)
 	int ini_sheep_state[12][12] = {0};
 	
 	char turn = playerID + '1';
-	cout << "playerID"  << playerID<< endl;
+	// cout << "playerID"  << playerID<< endl;
 	GameState ini_game_state(mapStat, ini_sheep_state, turn);
 	Action ini_pos_action = game1_agent.decide_inipos(ini_game_state);
 
@@ -74,7 +74,7 @@ std::vector<int> GetStep(int playerID,int mapStat[12][12], int sheepStat[12][12]
 	step[1] = decided_action.y;
 	step[2] = decided_action.n;
 	step[3] = (decided_action.dir<4)?decided_action.dir+1:decided_action.dir+2;
-    cout << "Step: " << step[0] << " " << step[1] << " " << step[2] << " " << step[3] << endl;
+    // cout << "Step: " << step[0] << " " << step[1] << " " << step[2] << " " << step[3] << endl;
     return step;
 }
 
