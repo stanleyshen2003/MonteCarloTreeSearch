@@ -8,7 +8,8 @@
 
 
 // Create MCTS agent
-MCTS_agent game1_agent;
+int playerID;
+MCTS_agent game1_agent(2000, 2, playerID);
 
 /*
     選擇起始位置
@@ -26,13 +27,13 @@ std::vector<int> InitPos(int mapStat[12][12], int playerID)
 	/*
 		Write your code here
 	*/
-	int ini_sheep_state[12][12] = {0};
-	char turn = playerID + '1';
-	GameState ini_game_state(mapStat, ini_sheep_state, turn);
-	Action ini_pos_action = game1_agent.decide_inipos(ini_game_state);
+	// int ini_sheep_state[12][12] = {0};
+	// char turn = playerID + '1';
+	// GameState ini_game_state(mapStat, ini_sheep_state, turn);
+	Action ini_pos_action = game1_agent.middle_inipos(mapStat);
 
 	init_pos[0] = ini_pos_action.x;
-	init_pos[1] = ini_pos_action.y;  
+	init_pos[1] = ini_pos_action.y;
     
     return init_pos;
 }
@@ -79,7 +80,6 @@ std::vector<int> GetStep(int playerID,int mapStat[12][12], int sheepStat[12][12]
 int main()
 {
 	int id_package;
-	int playerID;
     int mapStat[12][12];
     int sheepStat[12][12];
 
@@ -89,13 +89,13 @@ int main()
 	std::vector<int> init_pos = InitPos(mapStat, playerID);
 	SendInitPos(id_package,init_pos);
 
-	while (true)
-	{
-		if (GetBoard(id_package, mapStat, sheepStat))
-			break;
+	// while (true)
+	// {
+	// 	if (GetBoard(id_package, mapStat, sheepStat))
+	// 		break;
 
-		std::vector<int> step = GetStep(playerID,mapStat,sheepStat);
-		SendStep(id_package, step);
-	}
+	// 	std::vector<int> step = GetStep(playerID,mapStat,sheepStat);
+	// 	SendStep(id_package, step);
+	// }
 
 }
