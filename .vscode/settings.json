@@ -3,6 +3,7 @@
         "vector": "cpp",
         "queue": "cpp",
         "cmath": "cpp",
-        "utility": "cpp"
+        "utility": "cpp",
+        "iostream": "cpp"
     }
 }

@@ -43,16 +43,20 @@ vector<Action> GameState::get_actions() {
     for (int i = 0; i < 12; i++) {
         for (int j = 0; j < 12; j++) {
             if (user_state[i][j] == turn && sheep_state[i][j] > 1) {
+                vector<int> possible_dir;
                 for(int k = 0; k < 8; k++){
                     int x = i + directions8[k][0], y = j + directions8[k][1];
                     if(x >= 0 && x < 12 && y >= 0 && y < 12 && user_state[x][y]  == '1'){
-                        actions.push_back(Action(i, j, sheep_state[i][j] / 2, k));
-                        if(sheep_state[i][j] > 2){
-                            actions.push_back(Action(i, j, 1, k));
-                            actions.push_back(Action(i, j, sheep_state[i][j] - 1, k));
-                        }
+                        possible_dir.push_back(k);
+                        
                     }
                 }
+                if(possible_dir.size() == 1)
+                    actions.push_back(Action(i, j, sheep_state[i][j] - 1, possible_dir[0]));
+                else
+                    for(auto k: possible_dir)
+                        actions.push_back(Action(i, j, sheep_state[i][j] / 2, k));                
+                
             }
         }
     }
@@ -87,8 +91,8 @@ string GameState::get_key() {
     string key = "";
     for (int i = 0; i < 12; i++) {
         for (int j = 0; j < 12; j++) {
-            key += user_state[i][j];
-            key += to_string(sheep_state[i][j]);
+            key += user_state[i][j]+'_';
+            key += to_string(sheep_state[i][j])+'_';
         }
     }
     return key;
@@ -97,20 +101,20 @@ string GameState::get_key() {
 void GameState::print_gamer_map(){
     for (int i = 0; i < 12; i++){
         for (int j = 0; j < 12; j++){
-            // cout << ' ' <<  user_state[i][j];
+            cout << ' ' <<  user_state[i][j];
         }
 
-        // cout << endl;
+        cout << endl;
     }
 }
 
 void GameState::print_sheep_map(){
     for (int i = 0; i < 12; i++){
         for (int j = 0; j < 12; j++){
-            // cout << " " + to_string(sheep_state[i][j]);
+            cout << " " + to_string(sheep_state[i][j]);
         }
 
-        // cout << endl;
+        cout << endl;
     }
 }
 
@@ -180,7 +184,6 @@ bool GameState::is_terminal() {
 
 bool GameState::is_winner(char turn) {
     double turn_score = 0, new_score = 0;
-    int temp_turn_score = 0, temp_new_score = 0;
     for (int j = 0; j < 12; j++){
         for (int k = 0; k < 12; k++){
             if(user_state[j][k] == turn){
@@ -188,14 +191,10 @@ bool GameState::is_winner(char turn) {
             }
         }
     }
-    temp_turn_score = (int)(turn_score+0.5);
-    // cout << turn << endl;
-    // cout << "turn score: " << temp_turn_score << endl;
     for (int i = 0; i < 4; i++){
         if (i + 2 == turn - '0'){
             continue;
         }
-        // cout << (char)(i + '2') << endl;
         for (int j = 0; j < 12; j++){
             for (int k = 0; k < 12; k++){
                 if(user_state[j][k] == (char)(i + '2')){
@@ -204,10 +203,9 @@ bool GameState::is_winner(char turn) {
             }
         }
         
-        temp_new_score = (int)(new_score+0.5);
         new_score = 0;
         // cout << "new score: " << temp_new_score << endl;
-        if(temp_new_score > temp_turn_score){
+        if(new_score > turn_score){
             return false;
         }
     }
@@ -422,9 +420,9 @@ Action MCTS_agent::decide_step(GameState& state) {
     vector<Action> actions = sub_root->state.get_actions();
 
     cout << "action size: " << actions.size() << endl;
-    for(auto i: actions){
-        // cout << i.get_key()<< endl;
-    }
+    // for(auto i: actions){
+    //     cout << i.get_key()<< endl;
+    // }
 
     
     for (auto action: actions){
@@ -439,7 +437,7 @@ Action MCTS_agent::decide_step(GameState& state) {
         sub_root->children.push_back((*finded_child).second);
         sub_root->visits += (*finded_child).second->visits;
     }
-    // cout << "sub_root children size: " << sub_root->children.size() << endl;
+    cout << "sub_root children size: " << sub_root->children.size() << '\n';
     // Perform MCTS iterations
     for (int iter = 0; iter < max_iter; iter++) {
         // Choose a node using UCB;
