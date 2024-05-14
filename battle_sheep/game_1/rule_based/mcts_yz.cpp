@@ -489,8 +489,7 @@ Action MCTS_agent::decide_step(GameState& state) {
     // cout << "out_dir: " << out_dir << " out_dir_8: " << out_dir_8 << endl;
 
     double amount = (double)state.sheep_state[store_x][store_y] * ((double)out_dir_8/((double)dircount + (double)out_dir_8));
-    // cout << state.sheep_state[store_x][store_y] << " " << out_dir_8 << " " << dircount << endl;
-    // cout << "amount: " << amount << endl;
+
     int n = (int)amount;
     if(n <= 0){
         n = 1;

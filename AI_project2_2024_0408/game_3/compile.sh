@@ -1,0 +1,1 @@
+g++ team32_agent3.cpp -o ./sample/team32_agent3.exe -static -lws2_32 -Wall
